@@ -16,7 +16,7 @@ export default function Home() {
                 Transparent E-commerce Powered by Blockchain
               </h1>
               <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                TrustEcom provides a secure marketplace where every transaction is verified on the Cardano blockchain.
+                smartBuy provides a secure marketplace where every transaction is verified on the Cardano blockchain.
                 Buy, sell, and auction products with complete transparency.
               </p>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -37,7 +37,7 @@ export default function Home() {
               <div className="relative w-full max-w-[500px] aspect-square rounded-xl overflow-hidden shadow-xl">
                 <img
                   src="/placeholder.svg?height=500&width=500"
-                  alt="TrustEcom Marketplace"
+                  alt="smartBuy Marketplace"
                   className="object-cover w-full h-full"
                 />
               </div>
@@ -50,7 +50,7 @@ export default function Home() {
       <section className="py-12 bg-muted/50 rounded-xl">
         <div className="container px-4 md:px-6">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold tracking-tighter">Why Choose TrustEcom?</h2>
+            <h2 className="text-3xl font-bold tracking-tighter">Why Choose smartBuy?</h2>
             <p className="text-muted-foreground mt-4 max-w-[700px] mx-auto">
               Our blockchain-powered platform offers unique benefits that traditional e-commerce can't match.
             </p>

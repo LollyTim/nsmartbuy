@@ -163,7 +163,7 @@ export default function WalletPage() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle>Connect Your Wallet</CardTitle>
-            <CardDescription>Connect your Cardano wallet to access the TrustEcom platform features.</CardDescription>
+            <CardDescription>Connect your Cardano wallet to access the smartBuy platform features.</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
             <WalletButton />

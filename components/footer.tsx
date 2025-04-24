@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="container px-4 py-12 mx-auto">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
           <div className="space-y-4">
-            <h3 className="text-lg font-bold">TrustEcom</h3>
+            <h3 className="text-lg font-bold">smartBuy</h3>
             <p className="max-w-xs text-sm text-muted-foreground">
               A transparent blockchain-based e-commerce marketplace powered by Cardano.
             </p>
@@ -93,7 +93,7 @@ export default function Footer() {
         </div>
         <div className="pt-8 mt-8 border-t">
           <p className="text-xs text-center text-muted-foreground">
-            © {new Date().getFullYear()} TrustEcom. All rights reserved. Powered by Cardano Blockchain.
+            © {new Date().getFullYear()} smartBuy. All rights reserved. Powered by Cardano Blockchain.
           </p>
         </div>
       </div>

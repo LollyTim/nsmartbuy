@@ -8,7 +8,7 @@ import { Providers } from "./providers"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "TrustEcom - Blockchain E-commerce Marketplace",
+  title: "smartBuy - Blockchain E-commerce Marketplace",
   description: "A transparent blockchain-based e-commerce marketplace powered by Cardano",
   generator: 'v0.dev'
 }

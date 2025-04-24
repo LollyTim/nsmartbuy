@@ -690,7 +690,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
           (amount * 1000000).toString() // Convert ADA to lovelace
         )
         .setMetadata(0, {
-          message: "Transaction from TrustEcom",
+          message: "Transaction from smartBuy",
           timestamp: Date.now(),
         });
 

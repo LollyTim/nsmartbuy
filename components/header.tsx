@@ -102,7 +102,7 @@ export default function Header() {
           </SheetContent>
         </Sheet>
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <span className="font-bold text-xl">TrustEcom</span>
+          <span className="font-bold text-xl">smartBuy</span>
         </Link>
         <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>

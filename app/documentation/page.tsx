@@ -9,9 +9,9 @@ export default function DocumentationPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-4xl font-bold tracking-tight mb-2">TrustEcom Documentation</h1>
+        <h1 className="text-4xl font-bold tracking-tight mb-2">smartBuy Documentation</h1>
         <p className="text-xl text-muted-foreground mb-8">
-          A comprehensive guide to building and deploying TrustEcom for your blockchain e-commerce platform
+          A comprehensive guide to building and deploying smartBuy for your blockchain e-commerce platform
         </p>
 
         <Tabs defaultValue="overview" className="w-full">
@@ -30,13 +30,13 @@ export default function DocumentationPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Project Overview</CardTitle>
-                <CardDescription>Understanding the core concepts and features of TrustEcom</CardDescription>
+                <CardDescription>Understanding the core concepts and features of smartBuy</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <h3 className="text-lg font-medium">What is TrustEcom?</h3>
+                  <h3 className="text-lg font-medium">What is smartBuy?</h3>
                   <p>
-                    TrustEcom is a blockchain-based e-commerce marketplace built on the Cardano blockchain. It enables
+                    smartBuy is a blockchain-based e-commerce marketplace built on the Cardano blockchain. It enables
                     transparent, secure transactions with NFT-backed product authenticity verification, auction
                     capabilities, and an integrated wallet system.
                   </p>
@@ -107,13 +107,13 @@ export default function DocumentationPage() {
             <Card>
               <CardHeader>
                 <CardTitle>System Architecture</CardTitle>
-                <CardDescription>Understanding the technical architecture of TrustEcom</CardDescription>
+                <CardDescription>Understanding the technical architecture of smartBuy</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">Architecture Overview</h3>
                   <p>
-                    TrustEcom follows a modern web architecture pattern with blockchain integration. The system is
+                    smartBuy follows a modern web architecture pattern with blockchain integration. The system is
                     designed to be scalable, secure, and provide a seamless user experience while leveraging the
                     benefits of blockchain technology.
                   </p>
@@ -151,7 +151,7 @@ export default function DocumentationPage() {
 
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">Data Flow</h3>
-                  <p>The data flow in TrustEcom follows these general steps:</p>
+                  <p>The data flow in smartBuy follows these general steps:</p>
                   <ol className="list-decimal pl-6 space-y-2">
                     <li>User connects their Cardano wallet to the application</li>
                     <li>Product data and images are uploaded to IPFS</li>
@@ -169,12 +169,12 @@ export default function DocumentationPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Wallet Integration</CardTitle>
-                <CardDescription>Connecting and using Cardano wallets with TrustEcom</CardDescription>
+                <CardDescription>Connecting and using Cardano wallets with smartBuy</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">Supported Wallets</h3>
-                  <p>TrustEcom supports all major Cardano wallets that implement the CIP-30 standard, including:</p>
+                  <p>smartBuy supports all major Cardano wallets that implement the CIP-30 standard, including:</p>
                   <ul className="list-disc pl-6 space-y-2">
                     <li>
                       <span className="font-medium">Nami</span> - Lightweight browser extension wallet
@@ -223,7 +223,7 @@ export default function DocumentationPage() {
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Security Note</AlertTitle>
                   <AlertDescription>
-                    TrustEcom never has access to your private keys or recovery phrase. All sensitive operations are
+                    smartBuy never has access to your private keys or recovery phrase. All sensitive operations are
                     handled by your wallet extension, which only shares the necessary information with the application
                     after your explicit approval.
                   </AlertDescription>
@@ -236,13 +236,13 @@ export default function DocumentationPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Smart Contracts</CardTitle>
-                <CardDescription>Understanding the blockchain logic powering TrustEcom</CardDescription>
+                <CardDescription>Understanding the blockchain logic powering smartBuy</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">Smart Contract Overview</h3>
                   <p>
-                    TrustEcom uses Cardano smart contracts written in Plutus to handle various aspects of the
+                    smartBuy uses Cardano smart contracts written in Plutus to handle various aspects of the
                     marketplace. These contracts ensure secure, transparent, and trustless transactions between buyers
                     and sellers.
                   </p>
@@ -330,13 +330,13 @@ export default function DocumentationPage() {
             <Card>
               <CardHeader>
                 <CardTitle>NFT Implementation</CardTitle>
-                <CardDescription>How product tokenization works in TrustEcom</CardDescription>
+                <CardDescription>How product tokenization works in smartBuy</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">NFT Tokenization Process</h3>
                   <p>
-                    In TrustEcom, each product is tokenized as a Non-Fungible Token (NFT) on the Cardano blockchain.
+                    In smartBuy, each product is tokenized as a Non-Fungible Token (NFT) on the Cardano blockchain.
                     This process provides verifiable authenticity and ownership history for products.
                   </p>
                   <ol className="list-decimal pl-6 space-y-2">
@@ -409,7 +409,7 @@ export default function DocumentationPage() {
                       NFT metadata
                     </li>
                     <li>
-                      <span className="font-medium">In-App Verification:</span> Using TrustEcom's built-in verification
+                      <span className="font-medium">In-App Verification:</span> Using smartBuy's built-in verification
                       tools
                     </li>
                   </ul>
@@ -452,7 +452,7 @@ export default function DocumentationPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">ADA Purchase Process</h3>
-                  <p>TrustEcom allows users to buy ADA using Nigerian Naira (NGN) through Paystack integration:</p>
+                  <p>smartBuy allows users to buy ADA using Nigerian Naira (NGN) through Paystack integration:</p>
                   <ol className="list-decimal pl-6 space-y-2">
                     <li>
                       <span className="font-medium">Enter Amount:</span> User specifies how much NGN they want to spend
@@ -581,7 +581,7 @@ export default function DocumentationPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Required API Keys and Environment Variables</h3>
                   <p>
-                    TrustEcom requires several API keys and environment variables to function properly. This guide will
+                    smartBuy requires several API keys and environment variables to function properly. This guide will
                     walk you through obtaining each one.
                   </p>
 
@@ -811,7 +811,7 @@ NEXT_PUBLIC_APP_URL=your_app_url`}
                   <h3 className="text-lg font-medium">4. Lace Wallet Integration</h3>
                   <p>
                     Lace is a modern Cardano wallet developed by IOG (Input Output Global). Here's how to set it up for
-                    TrustEcom:
+                    smartBuy:
                   </p>
 
                   <div className="space-y-2">
@@ -842,9 +842,9 @@ NEXT_PUBLIC_APP_URL=your_app_url`}
                         </ul>
                       </li>
                       <li>
-                        <strong>Connect to TrustEcom</strong>:
+                        <strong>Connect to smartBuy</strong>:
                         <ul className="list-disc pl-6 mt-1">
-                          <li>When using TrustEcom, click "Connect Wallet"</li>
+                          <li>When using smartBuy, click "Connect Wallet"</li>
                           <li>Select "Lace" from the wallet options</li>
                           <li>Approve the connection request in the Lace wallet popup</li>
                         </ul>
@@ -928,12 +928,12 @@ NEXT_PUBLIC_APP_URL=your_app_url`}
             <Card>
               <CardHeader>
                 <CardTitle>Setup Guide</CardTitle>
-                <CardDescription>Step-by-step instructions for setting up TrustEcom</CardDescription>
+                <CardDescription>Step-by-step instructions for setting up smartBuy</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">Prerequisites</h3>
-                  <p>Before setting up TrustEcom, ensure you have the following:</p>
+                  <p>Before setting up smartBuy, ensure you have the following:</p>
                   <ul className="list-disc pl-6 space-y-2">
                     <li>Node.js 18.x or later installed</li>
                     <li>Git installed</li>
@@ -949,7 +949,7 @@ NEXT_PUBLIC_APP_URL=your_app_url`}
                     <li>
                       <strong>Clone the Repository</strong>
                       <pre className="bg-muted p-2 rounded-md mt-1 overflow-auto">
-                        git clone https://github.com/yourusername/trustecom.git cd trustecom
+                        git clone https://github.com/yourusername/smartBuy.git cd smartBuy
                       </pre>
                     </li>
                     <li>
@@ -990,7 +990,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000`}
 
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">Configuration Options</h3>
-                  <p>TrustEcom can be configured through various files:</p>
+                  <p>smartBuy can be configured through various files:</p>
                   <ul className="list-disc pl-6 space-y-2">
                     <li>
                       <strong>next.config.mjs</strong> - Next.js configuration
@@ -1009,7 +1009,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000`}
 
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">Deployment</h3>
-                  <p>To deploy TrustEcom to production:</p>
+                  <p>To deploy smartBuy to production:</p>
                   <ol className="list-decimal pl-6 space-y-2">
                     <li>
                       <strong>Build the Application</strong>

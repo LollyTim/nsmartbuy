@@ -237,7 +237,7 @@ export default function SellPage() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle>Connect Your Wallet</CardTitle>
-            <CardDescription>Connect your Cardano wallet to start selling on TrustEcom.</CardDescription>
+            <CardDescription>Connect your Cardano wallet to start selling on smartBuy.</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
             <WalletButton />
@@ -249,7 +249,7 @@ export default function SellPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold tracking-tight mb-6">Sell on TrustEcom</h1>
+      <h1 className="text-3xl font-bold tracking-tight mb-6">Sell on smartBuy</h1>
 
       <Card>
         <CardHeader>

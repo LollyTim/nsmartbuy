@@ -296,7 +296,7 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
               <div className="space-y-2">
                 <h3 className="font-medium">Auction Terms</h3>
                 <p className="text-sm text-muted-foreground">
-                  By placing a bid, you agree to the TrustEcom auction terms and conditions. The highest bidder at the
+                  By placing a bid, you agree to the smartBuy auction terms and conditions. The highest bidder at the
                   end of the auction will automatically purchase the item. Payment will be processed through a smart
                   contract on the Cardano blockchain. The winning bidder will receive the physical item along with an
                   NFT certificate of authenticity.
