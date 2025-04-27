@@ -12,7 +12,13 @@ import { useWallet } from "@/context/wallet-context"
 import { ArrowLeft, Clock, ExternalLink, History, User } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
 
-export default function AuctionDetailPage({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: {
+    id: string
+  }
+}
+
+export default function AuctionDetailPage({ params }: PageProps) {
   const auctionId = params.id
   const { isConnected, connectWallet, balance } = useWallet()
   const [bidAmount, setBidAmount] = useState("")
@@ -195,7 +201,13 @@ export default function AuctionDetailPage({ params }: { params: { id: string } }
                 </p>
               </div>
             ) : (
-              <Button onClick={connectWallet} className="w-full">
+              <Button
+                onClick={(e) => {
+                  e.preventDefault()
+                  connectWallet()
+                }}
+                className="w-full"
+              >
                 Connect Wallet to Bid
               </Button>
             )}

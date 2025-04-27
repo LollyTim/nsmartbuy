@@ -3,6 +3,8 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
+import { useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -19,7 +21,9 @@ import WalletButton from "@/components/wallet-button"
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export default function SellPage() {
-  const { isConnected, mintNFT, createAuction, address } = useWallet()
+  const { isConnected, address } = useWallet()
+  const createProduct = useMutation(api.products.createProduct)
+  const saveAuctionData = useMutation(api.products.saveAuctionData)
   const [isLoading, setIsLoading] = useState(false)
   const [productName, setProductName] = useState("")
   const [productDescription, setProductDescription] = useState("")
@@ -55,6 +59,15 @@ export default function SellPage() {
   }
 
   const handleCreateListing = async (isAuction = false) => {
+    if (!address) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to create a listing",
+        variant: "destructive",
+      })
+      return
+    }
+
     if (!productName || !productDescription || !productCategory) {
       toast({
         title: "Missing Information",
@@ -93,7 +106,10 @@ export default function SellPage() {
 
     setIsLoading(true)
     try {
+      console.log("🚀 Starting product creation process...")
+
       // First upload the image to IPFS
+      console.log("📤 Uploading image to IPFS...")
       const formData = new FormData()
       formData.append("file", productImage)
 
@@ -108,22 +124,34 @@ export default function SellPage() {
       }
 
       const imageData = await imageUploadResponse.json()
-      const imageUrl = imageData.url
+      console.log("✅ Image uploaded successfully:", imageData)
 
-      // Create product metadata for NFT
+      // Create product metadata
       const metadata = {
         name: productName,
         description: productDescription,
-        image: imageUrl,
+        image: imageData.url,
         category: productCategory,
         price: isAuction ? Number.parseFloat(auctionStartPrice) : Number.parseFloat(productPrice),
         isAuction,
         auctionDuration: isAuction ? Number.parseInt(auctionDuration) : null,
         quantity: Number.parseInt(productQuantity),
         createdAt: new Date().toISOString(),
+        sellerAddress: address,
+        attributes: [
+          {
+            trait_type: "Category",
+            value: productCategory
+          },
+          {
+            trait_type: "Listing Type",
+            value: isAuction ? "Auction" : "Fixed Price"
+          }
+        ]
       }
 
-      // Upload metadata to IPFS using the same endpoint
+      // Upload metadata to IPFS
+      console.log("📤 Uploading metadata to IPFS...")
       const metadataResponse = await fetch("/api/ipfs", {
         method: "POST",
         headers: {
@@ -138,89 +166,73 @@ export default function SellPage() {
       }
 
       const metadataData = await metadataResponse.json()
-      const metadataUrl = metadataData.url
+      console.log("✅ Metadata uploaded successfully:", metadataData)
 
-      // Show loading toast with pin status
+      // Save to Convex
+      console.log("💾 Saving product to Convex...")
+      const productData = {
+        name: productName,
+        description: productDescription,
+        price: isAuction ? Number.parseFloat(auctionStartPrice) : Number.parseFloat(productPrice),
+        currency: "₳",
+        image: imageData.url,
+        mediaType: productImage.type || "image/jpeg",
+        ipfsHash: metadataData.hash,
+        metadata: {
+          format: productImage.name.split(".").pop() || "jpeg",
+          isDirectAsset: true,
+        },
+        sellerAddress: address,
+      }
+
+      // Save product to Convex
+      const productId = await createProduct(productData)
+      console.log("✅ Product saved to Convex:", productId)
+
+      // If it's an auction, create the auction record
+      if (isAuction) {
+        console.log("📊 Creating auction record...")
+        const auctionData = {
+          productId,
+          startingPrice: Number.parseFloat(auctionStartPrice),
+          sellerAddress: address,
+          status: "active",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          startTime: new Date().toISOString(),
+          endTime: new Date(Date.now() + Number.parseInt(auctionDuration) * 24 * 60 * 60 * 1000).toISOString(),
+        }
+
+        const auctionId = await saveAuctionData(auctionData)
+        console.log("✅ Auction created:", auctionId)
+      }
+
+      console.log("🎉 Product creation completed successfully!")
+
+      // Show success message
       toast({
-        title: "Uploading to IPFS",
-        description: `Image: ${imageData.pinStatus.state}, Metadata: ${metadataData.pinStatus.state}`,
+        title: isAuction ? "Auction Created" : "Product Listed",
+        description: isAuction
+          ? "Your product has been listed for auction successfully"
+          : "Your product has been listed on the marketplace successfully",
       })
 
-      // Wait for pinning to complete (if needed)
-      if (imageData.pinStatus.state === "queued" || metadataData.pinStatus.state === "queued") {
-        await delay(5000) // Wait 5 seconds for pinning to complete
+      // Reset form
+      setProductName("")
+      setProductDescription("")
+      setProductCategory("")
+      setProductPrice("")
+      setProductQuantity("1")
+      setAuctionStartPrice("")
+      setAuctionDuration("3")
+      setProductImage(null)
+      setImagePreview(null)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
       }
 
-      // Mint NFT for the product
-      const assetId = await mintNFT(metadata, productImage)
-
-      if (assetId) {
-        // Save product to the database
-        const productData = {
-          name: productName,
-          description: productDescription,
-          category: productCategory,
-          price: isAuction ? Number.parseFloat(auctionStartPrice) : Number.parseFloat(productPrice),
-          currency: "₳",
-          image: imageUrl,
-          metadataUrl: metadataUrl,
-          tokenId: assetId,
-          sellerAddress: address,
-          isAuction,
-          auctionDuration: isAuction ? Number.parseInt(auctionDuration) : null,
-          quantity: Number.parseInt(productQuantity),
-        }
-
-        // Save to API
-        const response = await fetch("/api/products", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(productData),
-        })
-
-        if (!response.ok) {
-          throw new Error("Failed to save product to database")
-        }
-
-        // If it's an auction, create an auction contract
-        if (isAuction && assetId) {
-          const auctionId = await createAuction(
-            assetId,
-            Number.parseFloat(auctionStartPrice),
-            Number.parseInt(auctionDuration),
-          )
-
-          if (auctionId) {
-            toast({
-              title: "Auction Created Successfully",
-              description: "Your product has been listed for auction",
-            })
-          }
-        } else {
-          toast({
-            title: "Product Listed Successfully",
-            description: "Your product has been listed on the marketplace",
-          })
-        }
-
-        // Reset form
-        setProductName("")
-        setProductDescription("")
-        setProductCategory("")
-        setProductPrice("")
-        setProductQuantity("1")
-        setAuctionStartPrice("")
-        setAuctionDuration("3")
-        setProductImage(null)
-        setImagePreview(null)
-        if (fileInputRef.current) {
-          fileInputRef.current.value = ""
-        }
-      }
     } catch (error) {
-      console.error("Error creating listing:", error)
+      console.error("❌ Error creating listing:", error)
       toast({
         title: "Error Creating Listing",
         description: error instanceof Error ? error.message : "Failed to create listing",

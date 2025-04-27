@@ -150,4 +150,4 @@ export function ProductCard({
             </CardFooter>
         </Card>
     );
-}
+} 

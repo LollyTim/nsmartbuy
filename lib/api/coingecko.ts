@@ -1,36 +1,40 @@
 // CoinGecko API client for getting real-time cryptocurrency prices
 
-import axios from "axios";
-
 const COINGECKO_API_URL = "https://api.coingecko.com/api/v3";
 
 // Get current ADA price in multiple currencies
 export async function getADAPrices(currencies: string[] = ["usd", "ngn"]) {
   try {
-    const response = await axios.get(
+    const response = await fetch(
       `https://api.coingecko.com/api/v3/simple/price?ids=cardano&vs_currencies=${currencies.join(
         ","
       )}`
     );
 
-    if (response.data && response.data.cardano) {
+    if (!response.ok) {
+      throw new Error(`CoinGecko API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data && data.cardano) {
       return {
-        usd: response.data.cardano.usd || 0.45,
-        ngn: response.data.cardano.ngn || 675,
+        usd: data.cardano.usd || 0.733771,
+        ngn: data.cardano.ngn || 1181.94,
       };
     }
 
     // Fallback values if API fails
     return {
-      usd: 0.45,
-      ngn: 675,
+      usd: 0.733771,
+      ngn: 1181.94,
     };
   } catch (error) {
     console.error("Error fetching ADA prices:", error);
     // Fallback values
     return {
-      usd: 0.45,
-      ngn: 675,
+      usd: 0.733771,
+      ngn: 1181.94,
     };
   }
 }
@@ -74,7 +78,7 @@ export async function convertADAToFiat(
   } catch (error) {
     console.error("Error converting ADA to fiat:", error);
     // Fallback calculation
-    const rate = currency === "usd" ? 0.45 : 675;
+    const rate = currency === "usd" ? 0.733771 : 1181.94;
     return adaAmount * rate;
   }
 }
@@ -91,7 +95,7 @@ export async function convertFiatToADA(
   } catch (error) {
     console.error("Error converting fiat to ADA:", error);
     // Fallback calculation
-    const rate = currency === "usd" ? 0.45 : 675;
+    const rate = currency === "usd" ? 0.733771 : 1181.94;
     return fiatAmount / rate;
   }
 }

@@ -87,7 +87,6 @@ export const transferADA = async (
 export const getADAPriceInNGN = async (): Promise<number> => {
   try {
     // In a real implementation, you would fetch the current price from an exchange API
-    // For demo purposes, we'll use a fixed price: 1 ADA = 1000 NGN
     const response = await fetch(
       "https://api.coingecko.com/api/v3/simple/price?ids=cardano&vs_currencies=ngn",
       {
@@ -104,10 +103,10 @@ export const getADAPriceInNGN = async (): Promise<number> => {
     }
 
     const data = await response.json();
-    return data.cardano.ngn || 1000;
+    return data.cardano.ngn || 1181.94; // Updated fallback rate
   } catch (error) {
     console.error("Error getting ADA price:", error);
-    return 1000; // Fallback price
+    return 1181.94; // Updated fallback rate
   }
 };
 
