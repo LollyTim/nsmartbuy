@@ -99,7 +99,7 @@ export default function Header() {
 
         {/* Logo */}
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <span className="font-bold text-xl text-yellow-400">SmartBuy</span>
+          <span className="font-bold text-3xl text-yellow-400">SmartBuy</span>
         </Link>
 
         {/* Desktop navigation */}

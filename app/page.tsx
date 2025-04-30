@@ -230,7 +230,7 @@ export default function Home() {
       </section>
 
       {/* Local Services */}
-      <section>
+      {/* <section>
         <h2 className="text-xl font-bold mb-4">Local Services</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {['Plumbers', 'Electricians', 'Tailors', 'Hair Stylists'].map(service => (
@@ -242,7 +242,7 @@ export default function Home() {
             </Card>
           ))}
         </div>
-      </section>
+      </section> */}
     </div>
   )
 }

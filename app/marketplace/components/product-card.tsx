@@ -135,7 +135,7 @@ export function ProductCard({ id, isNew, ipfsUrl }: ProductCardProps) {
                     </h3>
                     <p className="text-sm text-muted-foreground line-clamp-2">
                         {isLoading ? (
-                            <div className="h-3 bg-muted animate-pulse rounded" />
+                            <span className="h-3 bg-muted animate-pulse rounded" />
                         ) : error ? (
                             "Failed to load description"
                         ) : (
