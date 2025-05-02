@@ -198,7 +198,7 @@ export default function SellADAPage() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Exchange Rate:</span>
-                <span>1 ₳ = ₦{exchangeRate.toLocaleString()}</span>
+                <span>1 ₳ = ₦{exchangeRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Processing Fee:</span>
@@ -208,6 +208,18 @@ export default function SellADAPage() {
                 <span className="text-muted-foreground">Payout Time:</span>
                 <span>Within 24 hours</span>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                You will receive approximately:
+              </p>
+              <p className="text-2xl font-bold">
+                ₦{Number(ngnAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Exchange Rate: 1 ₳ = ₦{exchangeRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
             </div>
           </CardContent>
           <CardFooter>

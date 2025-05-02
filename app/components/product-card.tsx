@@ -88,7 +88,6 @@ export function ProductCard({
     };
 
     return (
-
         <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
             <div className="relative h-48 w-full">
                 <Image
@@ -151,4 +150,4 @@ export function ProductCard({
             </CardFooter>
         </Card>
     );
-}
+} 

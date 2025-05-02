@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 
 // Use the correct IPFS endpoint for Blockfrost
 const BLOCKFROST_IPFS_URL = "https://ipfs.blockfrost.io/api/v0/ipfs";
@@ -8,7 +9,10 @@ const BLOCKFROST_IPFS_API_KEY = process.env.BLOCKFROST_IPFS_API_KEY || "";
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 2000; // 2 seconds
 const REQUEST_TIMEOUT = 30000; // 30 seconds
-const PINNING_TIMEOUT = 45000; // 45 seconds
+const CACHE_DURATION = 3600; // 1 hour in seconds
+
+// In-memory cache for development
+const uploadCache = new Map<string, { ipfsHash: string; url: string }>();
 
 // Helper function to delay execution with exponential backoff
 const delay = (ms: number, attempt: number) =>
@@ -21,33 +25,93 @@ const createTimeoutController = (timeout: number) => {
   return { controller, timeoutId };
 };
 
-// Helper function to upload content to IPFS with retries
+// Type guard for Buffer
+function isBuffer(value: any): value is Buffer {
+  return Buffer.isBuffer(value);
+}
+
+// Helper function to generate cache key
+async function generateCacheKey(
+  content: Buffer | string | FormData
+): Promise<string> {
+  let dataToHash: Buffer;
+
+  if (content instanceof FormData) {
+    const file = content.get("file") as File;
+    const arrayBuffer = await file.arrayBuffer();
+    dataToHash = Buffer.from(arrayBuffer);
+  } else if (isBuffer(content)) {
+    dataToHash = content;
+  } else {
+    dataToHash = Buffer.from(content, "utf-8");
+  }
+
+  return crypto.createHash("sha256").update(dataToHash).digest("hex");
+}
+
+// Helper function to upload content to IPFS with deduplication
 async function uploadToIPFS(
   content: Buffer | string | FormData,
-  contentType: string,
-  attempt = 0
-): Promise<FormData> {
-  if (!BLOCKFROST_IPFS_API_KEY) {
-    throw new Error("IPFS API key not configured");
+  contentType: string
+): Promise<{ ipfsHash: string; url: string }> {
+  // Generate cache key
+  const cacheKey = await generateCacheKey(content);
+
+  // Check cache
+  const cached = uploadCache.get(cacheKey);
+  if (cached) {
+    console.log("Cache hit for:", cacheKey);
+    return cached;
   }
 
-  // Validate API key format
-  if (!BLOCKFROST_IPFS_API_KEY.startsWith("ipfs")) {
-    throw new Error(
-      "Invalid IPFS API key format. Key should start with 'ipfs'"
-    );
-  }
-
+  // Prepare FormData for upload
   const formData = new FormData();
   if (content instanceof FormData) {
-    return content;
-  } else if (content instanceof Buffer) {
+    const file = content.get("file") as File;
+    formData.append("file", file);
+  } else if (isBuffer(content)) {
     formData.append("file", new Blob([content]), "file");
   } else {
     formData.append("file", new Blob([content]), "metadata.json");
   }
 
-  return formData;
+  // Upload to IPFS
+  const { controller, timeoutId } = createTimeoutController(REQUEST_TIMEOUT);
+
+  try {
+    const response = await fetch(`${BLOCKFROST_IPFS_URL}/add`, {
+      method: "POST",
+      headers: {
+        project_id: BLOCKFROST_IPFS_API_KEY,
+      },
+      body: formData,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(
+        `Failed to upload to IPFS: ${error.message || "Unknown error"}`
+      );
+    }
+
+    const data = await response.json();
+    const result = {
+      ipfsHash: data.ipfs_hash,
+      url: `https://ipfs.io/ipfs/${data.ipfs_hash}`,
+    };
+
+    // Cache the result
+    uploadCache.set(cacheKey, result);
+    console.log("Cached result for:", cacheKey);
+
+    return result;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
 }
 
 // Helper function to pin content with retries
@@ -56,7 +120,7 @@ async function pinContent(ipfsHash: string, attempt = 0): Promise<any> {
     throw new Error("IPFS API key not configured");
   }
 
-  const { controller, timeoutId } = createTimeoutController(PINNING_TIMEOUT);
+  const { controller, timeoutId } = createTimeoutController(REQUEST_TIMEOUT);
 
   try {
     const response = await fetch(`${BLOCKFROST_IPFS_URL}/pin/add/${ipfsHash}`, {
@@ -117,8 +181,6 @@ async function checkPinStatus(ipfsHash: string, attempt = 0): Promise<any> {
 }
 
 export async function POST(request: Request) {
-  let lastError: Error | null = null;
-
   try {
     if (!BLOCKFROST_IPFS_API_KEY) {
       return NextResponse.json(
@@ -145,33 +207,12 @@ export async function POST(request: Request) {
       content = Buffer.from(arrayBuffer);
     }
 
-    // Upload to IPFS with retries
+    // Upload with retries
+    let lastError: Error | null = null;
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const formData = await uploadToIPFS(content, contentType, attempt);
-        const { controller, timeoutId } =
-          createTimeoutController(REQUEST_TIMEOUT);
-
-        const uploadResponse = await fetch(`${BLOCKFROST_IPFS_URL}/add`, {
-          method: "POST",
-          headers: {
-            project_id: BLOCKFROST_IPFS_API_KEY,
-          },
-          body: formData,
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!uploadResponse.ok) {
-          const error = await uploadResponse.json();
-          throw new Error(
-            `Failed to upload to IPFS: ${error.message || "Unknown error"}`
-          );
-        }
-
-        const uploadData = await uploadResponse.json();
-        const ipfsHash = uploadData.ipfs_hash;
+        const result = await uploadToIPFS(content, contentType);
+        const ipfsHash = result.ipfsHash;
 
         // Pin the content with retries
         for (let pinAttempt = 0; pinAttempt <= MAX_RETRIES; pinAttempt++) {
@@ -185,7 +226,7 @@ export async function POST(request: Request) {
 
             return NextResponse.json({
               hash: ipfsHash,
-              url: `https://ipfs.io/ipfs/${ipfsHash}`,
+              url: result.url,
               gatewayUrl: `https://ipfs.blockfrost.io/ipfs/${ipfsHash}`,
               pinStatus: pinStatus || { state: "queued" },
             });
@@ -201,7 +242,7 @@ export async function POST(request: Request) {
             // If all pin attempts failed, return success with failed pin status
             return NextResponse.json({
               hash: ipfsHash,
-              url: `https://ipfs.io/ipfs/${ipfsHash}`,
+              url: result.url,
               gatewayUrl: `https://ipfs.blockfrost.io/ipfs/${ipfsHash}`,
               pinStatus: { state: "failed", error: lastError.message },
             });
@@ -221,14 +262,13 @@ export async function POST(request: Request) {
     // All attempts failed
     return NextResponse.json(
       {
-        error: "IPFS service currently unavailable",
-        details: lastError?.message || "All upload attempts failed",
-        retryable: true,
+        error: "Failed to upload to IPFS",
+        details: lastError?.message || "Unknown error",
       },
-      { status: 503 }
+      { status: 500 }
     );
   } catch (error) {
-    console.error("IPFS upload error:", error);
+    console.error("Error in IPFS upload:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
@@ -240,5 +280,5 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
-  return NextResponse.json({ message: "IPFS API is running" }, { status: 200 });
+  return NextResponse.json({ status: "IPFS API is running" });
 }

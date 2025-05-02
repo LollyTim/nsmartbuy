@@ -27,6 +27,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import QRCodeModal from "@/components/qr-code-modal"
 import ProductsList from "@/components/product-list"
 import NFTGallery from "@/components/nft-gallery"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 export default function WalletPage() {
   const walletContext = useWallet()
@@ -37,16 +46,19 @@ export default function WalletPage() {
   const isLoading = walletContext?.isLoading || false
   const isRefreshingBalance = walletContext?.isRefreshingBalance || false
   const totalValueUSD = walletContext?.totalValueUSD || 0
+  const totalValueNGN = walletContext?.totalValueNGN || 0
+  const adaToNgnRate = walletContext?.adaToNgnRate || 1181.94
   const validateAddress = walletContext?.validateAddress || (() => false)
   const updateBalance = walletContext?.updateBalance || (async () => { })
   const [amount, setAmount] = useState("")
   const [recipient, setRecipient] = useState("")
-  const [conversionRate, setConversionRate] = useState(20) // Mock conversion rate: 1 ADA = 20 Naira
   const [nairaAmount, setNairaAmount] = useState("")
   const [adaAmount, setAdaAmount] = useState("")
   const [transactions, setTransactions] = useState<any[]>([])
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false)
   const [addressError, setAddressError] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const transactionsPerPage = 5
 
   // Load transactions when wallet is connected
   useEffect(() => {
@@ -110,13 +122,13 @@ export default function WalletPage() {
 
   const handleNairaToAda = (value: string) => {
     setNairaAmount(value)
-    const ada = value ? (Number.parseFloat(value) / conversionRate).toFixed(2) : ""
+    const ada = value ? (Number.parseFloat(value) / adaToNgnRate).toFixed(2) : ""
     setAdaAmount(ada)
   }
 
   const handleAdaToNaira = (value: string) => {
     setAdaAmount(value)
-    const naira = value ? (Number.parseFloat(value) * conversionRate).toFixed(2) : ""
+    const naira = value ? (Number.parseFloat(value) * adaToNgnRate).toFixed(2) : ""
     setNairaAmount(naira)
   }
 
@@ -155,6 +167,20 @@ export default function WalletPage() {
       default:
         return "text-muted-foreground"
     }
+  }
+
+  // Sort transactions by timestamp in descending order
+  const sortedTransactions = transactions.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+
+  // Calculate pagination
+  const totalPages = Math.ceil(sortedTransactions.length / transactionsPerPage)
+  const startIndex = (currentPage - 1) * transactionsPerPage
+  const endIndex = startIndex + transactionsPerPage
+  const currentTransactions = sortedTransactions.slice(startIndex, endIndex)
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
   }
 
   if (!isConnected) {
@@ -203,10 +229,10 @@ export default function WalletPage() {
               <div className="bg-muted p-4 rounded-md">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-3xl font-bold">{isNaN(balance) ? "0.00" : balance.toFixed(2)} ₳</p>
+                    <p className="text-3xl font-bold">{isNaN(balance) ? "0.00" : balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₳</p>
                     <p className="text-sm text-muted-foreground">
-                      ≈ {isNaN(balance) ? "0.00" : (balance * conversionRate).toFixed(2)} ₦ | $
-                      {isNaN(totalValueUSD) ? "0.00" : totalValueUSD.toFixed(2)} USD
+                      ≈ ₦{isNaN(balance) ? "0.00" : (balance * adaToNgnRate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} | $
+                      {isNaN(totalValueUSD) ? "0.00" : totalValueUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>
                   <Button
@@ -250,44 +276,80 @@ export default function WalletPage() {
                 <div className="flex justify-center py-4">
                   <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-              ) : transactions.length > 0 ? (
-                transactions.map((tx, i) => (
-                  <div key={i} className="flex items-center justify-between py-3 border-b last:border-0">
-                    <div className="flex items-center">
-                      <div className="mr-3">{getTransactionIcon(tx.type)}</div>
-                      <div className="flex flex-col">
-                        <span className="font-medium">
-                          {tx.type === "send"
-                            ? "Sent"
-                            : tx.type === "receive"
-                              ? "Received"
-                              : tx.type === "transfer"
-                                ? "Transferred"
-                                : "Transaction"}{" "}
-                          {Math.abs(tx.amount).toFixed(6)} ₳
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(tx.timestamp).toLocaleString()}
-                        </span>
+              ) : currentTransactions.length > 0 ? (
+                <>
+                  <div className="space-y-2">
+                    {currentTransactions.map((tx, i) => (
+                      <div key={i} className="flex items-center justify-between py-3 border-b last:border-0">
+                        <div className="flex items-center">
+                          <div className="mr-3">{getTransactionIcon(tx.type)}</div>
+                          <div className="flex flex-col">
+                            <span className="font-medium">
+                              {tx.type === "send"
+                                ? "Sent"
+                                : tx.type === "receive"
+                                  ? "Received"
+                                  : tx.type === "transfer"
+                                    ? "Transferred"
+                                    : "Transaction"}{" "}
+                              {Math.abs(tx.amount).toFixed(6)} ₳
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(tx.timestamp).toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className={`text-xs ${getTransactionStatusColor(tx.status)}`}>
+                            {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
+                          </span>
+                          {tx.txHash && (
+                            <Link
+                              href={`https://cardanoscan.io/transaction/${tx.txHash}`}
+                              target="_blank"
+                              className="text-xs flex items-center text-primary hover:underline mt-1"
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              View
+                            </Link>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <span className={`text-xs ${getTransactionStatusColor(tx.status)}`}>
-                        {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
-                      </span>
-                      {tx.txHash && (
-                        <Link
-                          href={`https://cardanoscan.io/transaction/${tx.txHash}`}
-                          target="_blank"
-                          className="text-xs flex items-center text-primary hover:underline mt-1"
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          View
-                        </Link>
-                      )}
-                    </div>
+                    ))}
                   </div>
-                ))
+                  {totalPages > 1 && (
+                    <div className="mt-4">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious
+                              onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                              aria-disabled={currentPage === 1}
+                              className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                            />
+                          </PaginationItem>
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                onClick={() => handlePageChange(page)}
+                                isActive={currentPage === page}
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ))}
+                          <PaginationItem>
+                            <PaginationNext
+                              onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                              aria-disabled={currentPage === totalPages}
+                              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  )}
+                </>
               ) : (
                 <p className="text-sm text-muted-foreground py-2">No transactions found</p>
               )}
@@ -399,7 +461,7 @@ export default function WalletPage() {
                 <Separator className="my-4" />
 
                 <div className="text-sm text-muted-foreground">
-                  <p>Exchange Rate: 1 ₳ = {conversionRate} ₦</p>
+                  <p>Exchange Rate: 1 ₳ = ₦{adaToNgnRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                   <p className="mt-1">Processing Fee: 1%</p>
                 </div>
 
@@ -438,7 +500,7 @@ export default function WalletPage() {
                 <Separator className="my-4" />
 
                 <div className="text-sm text-muted-foreground">
-                  <p>Exchange Rate: 1 ₳ = {conversionRate} ₦</p>
+                  <p>Exchange Rate: 1 ₳ = ₦{adaToNgnRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                   <p className="mt-1">Processing Fee: 1%</p>
                 </div>
 

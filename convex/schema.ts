@@ -44,35 +44,37 @@ export default defineSchema({
     price: v.number(),
     currency: v.string(),
     image: v.string(),
-    mediaType: v.string(),
     ipfsHash: v.string(),
-    metadata: v.object({
-      format: v.optional(v.string()),
-      isDirectAsset: v.optional(v.boolean()),
-      isRawContent: v.optional(v.boolean()),
-    }),
     sellerAddress: v.string(),
     status: v.string(),
+    mediaType: v.string(),
+    metadata: v.object({
+      format: v.string(),
+      isDirectAsset: v.boolean(),
+    }),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
+    .index("by_status", ["status"])
     .index("by_seller", ["sellerAddress"])
-    .index("by_ipfsHash", ["ipfsHash"])
-    .index("by_status", ["status"]),
+    .index("by_ipfsHash", ["ipfsHash"]),
 
   // Auctions table to store all auction data
   auctions: defineTable({
     productId: v.id("products"),
     startingPrice: v.number(),
-    currentBid: v.optional(v.number()),
+    sellerAddress: v.string(),
+    status: v.string(),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+    currentBid: v.number(),
     highestBidder: v.optional(v.string()),
     startTime: v.string(),
     endTime: v.string(),
-    status: v.string(), // "active", "ended", "cancelled"
-    sellerAddress: v.string(),
-    createdAt: v.string(),
-    updatedAt: v.optional(v.string()),
-  }),
+  })
+    .index("by_product", ["productId"])
+    .index("by_seller", ["sellerAddress"])
+    .index("by_status", ["status"]),
 
   // Bids table to store all auction bids
   bids: defineTable({
@@ -103,4 +105,38 @@ export default defineSchema({
       )
     ),
   }),
+
+  cart: defineTable({
+    productId: v.id("products"),
+    quantity: v.number(),
+    buyerAddress: v.string(),
+    price: v.number(),
+    sellerAddress: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("in_escrow"),
+      v.literal("completed")
+    ),
+    escrowId: v.optional(v.id("escrow")),
+    createdAt: v.number(),
+  })
+    .index("by_buyer", ["buyerAddress"])
+    .index("by_status", ["status"]),
+
+  escrow: defineTable({
+    cartItems: v.array(v.id("cart")),
+    buyerAddress: v.string(),
+    totalAmount: v.number(),
+    commission: v.number(),
+    sellerAmount: v.number(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("completed"),
+      v.literal("cancelled")
+    ),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_buyer", ["buyerAddress"])
+    .index("by_status", ["status"]),
 });

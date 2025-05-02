@@ -53,7 +53,6 @@ export const create = mutation({
       metadata: {
         format: "",
         isDirectAsset: false,
-        isRawContent: false,
       },
     });
   },
@@ -101,20 +100,52 @@ export const createProduct = mutation({
     mediaType: v.string(),
     ipfsHash: v.string(),
     metadata: v.object({
-      format: v.optional(v.string()),
-      isDirectAsset: v.optional(v.boolean()),
-      isRawContent: v.optional(v.boolean()),
+      format: v.string(),
+      isDirectAsset: v.boolean(),
     }),
     sellerAddress: v.string(),
   },
   handler: async (ctx, args) => {
+    // Validate required fields
+    if (!args.name.trim()) {
+      throw new Error("Product name is required");
+    }
+    if (!args.description.trim()) {
+      throw new Error("Product description is required");
+    }
+    if (args.price <= 0) {
+      throw new Error("Product price must be greater than 0");
+    }
+    if (!args.ipfsHash.trim()) {
+      throw new Error("IPFS hash is required");
+    }
+    if (!args.sellerAddress.trim()) {
+      throw new Error("Seller address is required");
+    }
+
+    console.log("📝 Creating product with data:", args);
     const now = Date.now();
-    return await ctx.db.insert("products", {
-      ...args,
+
+    const productId = await ctx.db.insert("products", {
+      name: args.name,
+      description: args.description,
+      price: args.price,
+      currency: args.currency,
+      image: args.image,
+      mediaType: args.mediaType,
+      ipfsHash: args.ipfsHash,
+      metadata: {
+        format: args.metadata.format,
+        isDirectAsset: args.metadata.isDirectAsset,
+      },
+      sellerAddress: args.sellerAddress,
       status: "active",
       createdAt: now,
       updatedAt: now,
     });
+
+    console.log("✅ Product created with ID:", productId);
+    return productId;
   },
 });
 
@@ -169,5 +200,121 @@ export const getProductsBySeller = query({
       .query("products")
       .withIndex("by_seller", (q) => q.eq("sellerAddress", args.sellerAddress))
       .collect();
+  },
+});
+
+export const saveNFTMetadata = mutation({
+  args: {
+    name: v.string(),
+    description: v.string(),
+    category: v.string(),
+    price: v.number(),
+    currency: v.string(),
+    image: v.string(),
+    metadataUrl: v.string(),
+    ipfsHash: v.string(),
+    sellerAddress: v.string(),
+    isAuction: v.boolean(),
+    auctionDuration: v.union(v.number(), v.null()),
+    quantity: v.number(),
+    status: v.string(),
+    createdAt: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const productId = await ctx.db.insert("products", {
+      name: args.name,
+      description: args.description,
+      price: args.price,
+      currency: args.currency,
+      image: args.image,
+      ipfsHash: args.ipfsHash,
+      sellerAddress: args.sellerAddress,
+      status: args.status,
+      mediaType: "image/jpeg",
+      metadata: {
+        format: "jpeg",
+        isDirectAsset: true,
+      },
+      createdAt: new Date(args.createdAt).getTime(),
+      updatedAt: Date.now(),
+    });
+
+    return productId;
+  },
+});
+
+export const saveAuctionData = mutation({
+  args: {
+    productId: v.id("products"),
+    startingPrice: v.number(),
+    sellerAddress: v.string(),
+    status: v.string(),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+    startTime: v.string(),
+    endTime: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Validate required fields
+    if (args.startingPrice <= 0) {
+      throw new Error("Starting price must be greater than 0");
+    }
+    if (!args.sellerAddress.trim()) {
+      throw new Error("Seller address is required");
+    }
+
+    // Validate dates
+    const startTime = new Date(args.startTime).getTime();
+    const endTime = new Date(args.endTime).getTime();
+    if (endTime <= startTime) {
+      throw new Error("End time must be after start time");
+    }
+
+    console.log("📝 Creating auction with data:", args);
+
+    const auctionId = await ctx.db.insert("auctions", {
+      productId: args.productId,
+      startingPrice: args.startingPrice,
+      sellerAddress: args.sellerAddress,
+      status: args.status,
+      createdAt: args.createdAt,
+      updatedAt: args.updatedAt,
+      currentBid: args.startingPrice,
+      highestBidder: undefined,
+      startTime: args.startTime,
+      endTime: args.endTime,
+    });
+
+    console.log("✅ Auction created with ID:", auctionId);
+    return auctionId;
+  },
+});
+
+export const getActiveAuctions = query({
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("auctions")
+      .filter((q) => q.eq(q.field("status"), "active"))
+      .collect();
+  },
+});
+
+// Get a single product by ID
+export const getProduct = query({
+  args: { id: v.id("products") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.id);
+  },
+});
+
+// Get auction details for a product
+export const getAuction = query({
+  args: { productId: v.id("products") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("auctions")
+      .filter((q) => q.eq(q.field("productId"), args.productId))
+      .filter((q) => q.eq(q.field("status"), "active"))
+      .first();
   },
 });

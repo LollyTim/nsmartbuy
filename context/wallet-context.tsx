@@ -104,8 +104,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const [meshWallet, setMeshWallet] = useState<any>(null) // Initialize meshWallet state
   const [walletName, setWalletName] = useState<string | null>(null)
   const [walletError, setWalletError] = useState<string | null>(null)
-  const [adaToUsdRate, setAdaToUsdRate] = useState(0.45) // Default fallback rate
-  const [adaToNgnRate, setAdaToNgnRate] = useState(675) // Default fallback rate
+  const [adaToUsdRate, setAdaToUsdRate] = useState(0.733771) // Updated default rate
+  const [adaToNgnRate, setAdaToNgnRate] = useState(1181.94) // Updated default rate
   const [isRefreshingBalance, setIsRefreshingBalance] = useState(false)
 
   // Fetch current ADA exchange rates
@@ -115,14 +115,14 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       const prices = await getADAPrices(["usd", "ngn"])
       if (prices) {
         console.log("Exchange rates fetched successfully:", prices)
-        setAdaToUsdRate(prices.usd || 0.45)
-        setAdaToNgnRate(prices.ngn || 675)
+        setAdaToUsdRate(prices.usd || 0.733771)
+        setAdaToNgnRate(prices.ngn || 1181.94)
       }
     } catch (error) {
       console.error("Error fetching exchange rates:", error)
       // Use fallback values
-      setAdaToUsdRate(0.45)
-      setAdaToNgnRate(675)
+      setAdaToUsdRate(0.733771)
+      setAdaToNgnRate(1181.94)
     }
   }
 

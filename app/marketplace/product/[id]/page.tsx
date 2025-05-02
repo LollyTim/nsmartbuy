@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -5,8 +7,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 import { ArrowLeft, Check, ExternalLink, ShoppingCart, Star } from "lucide-react"
 import ProductVerificationHistory from "@/components/product-verification-history"
+import { useState } from "react"
+import { useWallet } from "@/context/wallet-context"
+import { toast } from "@/components/ui/use-toast"
+import { useCartStore } from "@/app/lib/cart-store"
+// import { useCartStore } from "@/lib/cart-store"
 
-export default function ProductPage({ params }: { params: { id: string } }) {
+function truncateAddress(address: string, startLength = 8, endLength = 8) {
+  if (!address) return ""
+  if (address.length <= startLength + endLength) return address
+  return `${address.slice(0, startLength)}...${address.slice(-endLength)}`
+}
+
+interface PageProps {
+  params: {
+    id: string
+  }
+}
+
+export default function ProductPage({ params }: PageProps) {
+  const { isConnected, connectWallet } = useWallet()
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const { addItem, getItemQuantity } = useCartStore()
   const productId = params.id
 
   // Mock product data
@@ -61,6 +83,65 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     ],
   }
 
+  const handleAddToCart = async () => {
+    if (!isConnected) {
+      toast({
+        title: "Wallet Required",
+        description: "Please connect your wallet to add items to cart",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsAddingToCart(true)
+    try {
+      const currentQuantity = getItemQuantity(`${product.id}`)
+      if (currentQuantity >= product.stock) {
+        toast({
+          title: "Stock Limit Reached",
+          description: "You cannot add more of this item to your cart",
+          variant: "destructive",
+        })
+        return
+      }
+      addItem({
+        productId: String(product.id),
+        quantity: 1,
+        price: product.price,
+        name: product.name,
+        image: product.images[0],
+      })
+
+      toast({
+        title: "Success",
+        description: "Item added to cart successfully",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart",
+        variant: "destructive",
+      })
+    } finally {
+      setIsAddingToCart(false)
+    }
+  }
+
+  const handleBuyNow = async () => {
+    if (!isConnected) {
+      toast({
+        title: "Wallet Required",
+        description: "Please connect your wallet to make a purchase",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Add to cart and redirect to checkout
+    await handleAddToCart()
+    // You can add navigation to checkout here
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Link href="/marketplace" className="flex items-center text-muted-foreground mb-6 hover:text-foreground">
@@ -105,9 +186,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-4 w-4 ${
-                      i < Math.floor(product.sellerRating) ? "fill-primary text-primary" : "text-muted-foreground"
-                    }`}
+                    className={`h-4 w-4 ${i < Math.floor(product.sellerRating) ? "fill-primary text-primary" : "text-muted-foreground"
+                      }`}
                   />
                 ))}
               </div>
@@ -150,11 +230,21 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button className="flex-1" size="lg">
+            <Button
+              className="flex-1"
+              size="lg"
+              onClick={handleAddToCart}
+              disabled={isAddingToCart || getItemQuantity(product.id.toString()) >= product.stock}
+            >
               <ShoppingCart className="mr-2 h-5 w-5" />
-              Add to Cart
+              {isAddingToCart ? "Adding..." : "Add to Cart"}
             </Button>
-            <Button variant="outline" className="flex-1" size="lg">
+            <Button
+              variant="outline"
+              className="flex-1"
+              size="lg"
+              onClick={handleBuyNow}
+            >
               Buy Now
             </Button>
           </div>
@@ -196,7 +286,9 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex justify-between py-2 border-b">
                     <span className="font-medium">Token ID</span>
-                    <span className="truncate max-w-[200px]">{product.tokenId}</span>
+                    <span className="truncate max-w-[200px]" title={product.tokenId}>
+                      {truncateAddress(product.tokenId)}
+                    </span>
                   </div>
                   <div className="flex justify-between py-2 border-b">
                     <span className="font-medium">Blockchain</span>
